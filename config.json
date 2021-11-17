@@ -1,0 +1,12 @@
+{
+	"show": true,
+	"waitTimeout": 30000,
+	"gotoTimeout": 30000,
+	"pollInterval": 250,
+	"typeInterval": 100,
+	"executionTimeout": 30000,
+	"webPreferences": {
+		"partition": "nightmare"
+	},
+	"maxAuthRetries": 3
+}
