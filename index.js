@@ -1,17 +1,6 @@
 const Html = require("mm_html");
+const Https = require("mm_https");
 var Nightmare = require('nightmare');
-
-// nightmare
-//   .goto('https://duckduckgo.com')
-//   .type('#search_form_input_homepage', 'github nightmare')
-//   .click('#search_button_homepage')
-//   .wait('#r1-0 a.result__a')
-//   .evaluate(() => document.querySelector('#r1-0 a.result__a').href)
-//   .end()
-//   .then(console.log)
-//   .catch(error => {
-//     console.error('Search failed:', error)
-//   })
 
 /**
  * 爬虫
@@ -74,8 +63,7 @@ Spider.prototype.mousepress = function(selector) {
  */
 Spider.prototype.foucs = function(selector) {
 	this.wait(selector);
-	this.click(selector);
-	return this;
+	return this.click(selector);
 };
 
 /**
@@ -84,8 +72,7 @@ Spider.prototype.foucs = function(selector) {
  * @return {Object}
  */
 Spider.prototype.eval = function(func) {
-	this.evaluate(func);
-	return this;
+	return this.evaluate(func);
 };
 
 /**
@@ -95,8 +82,7 @@ Spider.prototype.eval = function(func) {
  * @return {Object} 返回自身
  */
 Spider.prototype.input = function(tag, text) {
-	this.type(tag, text);
-	return this;
+	return this.type(tag, text);
 };
 
 /**
@@ -196,7 +182,7 @@ Spider.prototype.next = function(times = 1) {
  * @return {Object}
  */
 Spider.prototype.import = function(...arg) {
-	for(var i = 0 ; i < arg.length; i++){
+	for (var i = 0; i < arg.length; i++) {
 		var jsOrCss = arg[i];
 		if (jsOrCss.endWith(".js")) {
 			this.inject("js", jsOrCss);
@@ -211,10 +197,20 @@ Spider.prototype.import = function(...arg) {
 			}
 		}
 	}
-	
+
 	return this;
 };
 
+/**
+ * 拾取元素内容
+ * @param {String} selector
+ * @return {Object}
+ */
+Spider.prototype.tag = async function(selector) {
+	var dom = new Html();
+	var html_str = await this.get_html(selector);
+	return await dom.toJQ(selector);
+};
 
 /**
  * 拾取元素内容
@@ -222,14 +218,7 @@ Spider.prototype.import = function(...arg) {
  * @return {Object}
  */
 Spider.prototype.get_text = function(selector) {
-	this.evaluate(eval(`() => {
-		if(!window.mm){
-			window.mm = {};
-		}
-		window.mm['${selector}'] = document.querySelector('${selector}').textContent;
-		return window.mm['${selector}'];
-	}`));
-	return this;
+	return this.evaluate(eval(`() => document.querySelector('${selector}').textContent;`));
 };
 
 /**
@@ -238,14 +227,7 @@ Spider.prototype.get_text = function(selector) {
  * @return {Object}
  */
 Spider.prototype.get_html = function(selector) {
-	this.evaluate(eval(`() => {
-		if(!window.mm){
-			window.mm = {};
-		}
-		window.mm['${selector}'] = document.querySelector('${selector}').innerHTML;
-		return window.mm['${selector}'];
-	}`));
-	return this;
+	return this.evaluate(eval(`() => document.querySelector('${selector}').innerHTML`));
 };
 
 /**
@@ -254,14 +236,7 @@ Spider.prototype.get_html = function(selector) {
  * @return {Object}
  */
 Spider.prototype.get_value = function(selector) {
-	this.evaluate(eval(`() => {
-		if(!window.mm){
-			window.mm = {};
-		}
-		window.mm['${selector}'] = document.querySelector('${selector}').value;
-		return window.mm['${selector}'];
-	}`));
-	return this;
+	return this.evaluate(eval(`() => document.querySelector('${selector}').value`));
 };
 
 
@@ -271,14 +246,7 @@ Spider.prototype.get_value = function(selector) {
  * @return {Object}
  */
 Spider.prototype.get_src = function(selector) {
-	this.evaluate(eval(`() => {
-		if(!window.mm){
-			window.mm = {};
-		}
-		window.mm['${selector}'] = document.querySelector('${selector}').src;
-		return window.mm['${selector}'];
-	}`));
-	return this;
+	return this.evaluate(eval(`() => document.querySelector('${selector}').src`));
 };
 
 /**
@@ -287,38 +255,36 @@ Spider.prototype.get_src = function(selector) {
  * @return {Object}
  */
 Spider.prototype.get_href = function(selector) {
-	this.evaluate(eval(`() => {
-		if(!window.mm){
-			window.mm = {};
-		}
-		window.mm['${selector}'] = document.querySelector('${selector}').href;
-		return window.mm['${selector}'];
-	}`));
+	this.evaluate(eval(`() => document.querySelector('${selector}').href`));
 	return this;
 };
 
 /**
- * 开启
- * @return {Object}
+ * 初始化
  */
-Spider.prototype.open = function() {
-	this.evaluate(eval(`() => {
-		if(!window.mm){
-			window.mm = {};
-		}
-	}`));
-	this.end();
-	return this;
+Spider.prototype.init = function() {
+	return this.import("jquery.min", "mm_sdk");
 };
 
 /**
- * 关闭
- * @return {Object}
+ * 下载
+ * @param {String} selectorOrUrl 网址或选择器
+ * @param {String} path 保存路径
  */
-Spider.prototype.close = function() {
-	this.evaluate(eval(`() => JSON.stringify(window.mm || {})`));
-	this.end();
-	return this;
+Spider.prototype.download = function(selectorOrUrl, filename) {
+	var url;
+	if (selectorOrUrl.indexOf("http") === 0) {
+		url = selectorOrUrl;
+	} else {
+		url = await this.get_src(selectorOrUrl);
+	}
+	if (!url) {
+		return false;
+	}
+	
+	var headers = {};
+	var cookie = {};
+	return await http.download(url, filename, true, headers, cookie);
 };
 
 module.exports = Spider;
