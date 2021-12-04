@@ -1,4 +1,4 @@
-const Spider = require("./index.js");
+const Spider = require("../../index.js");
 
 var config = "./config.json".loadJson();
 var spider = new Spider(config);
@@ -25,7 +25,7 @@ async function test() {
 		// .get_html('html')
 		// .get_html('#r1-0 a.result__a')
 		// .get_text('#r1-0 a.result__a')
-		.end()
+		// .end()
 		// .close()
 		.then((res) => {
 			// 函数参数为evaluate的返回值

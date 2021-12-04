@@ -271,7 +271,7 @@ Spider.prototype.init = function() {
  * @param {String} selectorOrUrl 网址或选择器
  * @param {String} path 保存路径
  */
-Spider.prototype.download = function(selectorOrUrl, filename) {
+Spider.prototype.download = async function(selectorOrUrl, filename) {
 	var url;
 	if (selectorOrUrl.indexOf("http") === 0) {
 		url = selectorOrUrl;
